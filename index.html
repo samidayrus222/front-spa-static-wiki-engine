@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+    <div class="btn">
+        <span class="fa fa-bars"></span>
+    </div>
+    <!-- <button id="add">Add wiki</button> -->
+    <div id="add">
+        <span class="fa fa-plus add-btn"></span>
+    </div>
+    <div></div>
+    
+    <div>
+
+    </div>
+    
+    <!-- <button id="back-to-details">Back</button> -->
+    <!-- <button id="back">Back</button> -->
+    <!-- <button id="update">Update</button> -->
+    <!-- <button id="edit">Edit Wiki</button> -->
+    <!-- <button id="delete">Delete Wiki</button> -->
+    <!-- <button id="create">Create Wiki</button> -->
+    <nav class="sidebar">
+        <div class="text" id="data">Menu</div>
+        <ul>
+            <li id="all-articles">
+                <a href="#" class="all-articles-btn">All Articles
+                    <span class="fa fa-caret-down first"></span>
+                </a>
+                <ul class="all-articles-show" id="for-data">
+                </ul>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="content" >
+        <div class="content-header">
+            <h1>Static Wiki Engine</h1>
+        </div>
+        <div id="form-edit">
+
+        </div>
+        <div id="form-create">
+            <input type="text" name="" placeholder="Title" id="title-create"><br><br>
+            <input type="text" name="" placeholder="Content" id="content-create"><br><br>
+            <input type="text" name="" placeholder="Tags" id="tags-create"><br><br>
+        </div>
+        <div class="content-1" id="data-details">
+        </div>
+        <div id="cancel">
+            <span class="fa fa-times cancel-btn"></span>
+        </div>
+        <div id="create">
+            <span class="fa fa-check create-btn"></span>
+        </div>
+        <div id="update">
+            <span class="fa fa-save update-btn"></span>
+        </div>
+        <div id="delete">
+            <span class="fa fa-trash "></span>
+        </div>
+        <div id="edit">
+            <span class="fa fa-pencil"></span>
+        </div>
+
+        <div id="back-to-details">
+            <span class="fa fa-angle-left"></span>
+        </div>
+    </div>
+    <div id="data"></div>
+    <script>
+        $(document).ready(function () {
+            $(".btn").click(function (e) { 
+                e.preventDefault();
+                $(this).toggleClass("click");
+                $(".sidebar").toggleClass("show");
+                $(".content").toggleClass("details");
+            });
+            $('.all-articles-btn').click(function (e) { 
+                e.preventDefault();
+                $('nav ul .all-articles-show').toggleClass("show")
+                $('nav ul .first').toggleClass("rotate")
+                $("nav ul li").click(function (e) { 
+                    e.preventDefault();
+                    $(this).addClass("active").siblings().removeClass("active");
+                });
+                 
+            });
+            $("#create").hide();
+            $("#cancel").hide();
+            $(".content #form-create").hide();
+            $("#back").hide();
+            $("#edit").hide();
+            $("#update").hide();
+            $("#delete").hide();
+            $("#back-to-details").hide();
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:8000/articles",
+                dataType: "json",
+                success: function (response) {
+                    var value;
+                    var title, content, tags;
+                    $.each(response.url, function (indexInArray, valueOfElement) {
+                        $.ajax({
+                            type: "GET",
+                            url: "http://localhost:8000/articles/" + valueOfElement,
+                            success: function (response) {
+                                $("#for-data").append("<li><a href='" + valueOfElement + "''>" + response.title + "</a></li>");
+                                $("a[href$='" + valueOfElement + "']").unbind().click(function (event) {
+                                    value = valueOfElement;
+                                    event.preventDefault();
+                                    $.ajax({
+                                        type: "GET",
+                                        url: "http://localhost:8000/articles/" + valueOfElement,
+                                        dataType: "json",
+                                        success: function (result) {
+                                            $("#create").hide();
+                                            $("#cancel").hide();
+                                            $("#data-details").empty();
+                                            // $("#for-data").hide();
+                                            // $("#all-articles").hide();
+                                            // $("#add").hide();
+                                            $("#data-details").append("<h1>" + result.title + "</h1>");
+                                            $("#data-details").append("<p>" + result.content + "</p>");
+                                            $("#data-details").show();
+                                            $("#form-create").hide();
+                                            $("#form-edit").hide();
+                                            $("#edit").show();
+                                            $("#delete").show();
+                                            $("#delete").unbind().click(function (e) {
+                                                e.preventDefault();
+                                                var $confirm = confirm("Are you sure want to delete?");
+                                                if ($confirm) {
+                                                    $("#data-details").empty();
+
+                                                    $.ajax({
+                                                        type: "DELETE",
+                                                        dataType: "json",
+                                                        contentType: "application/json",
+                                                        url: "http://localhost:8000/article/" + valueOfElement,
+                                                        success: function (response) {
+                                                            $("#delete").hide();
+                                                            $("#edit").hide();
+                                                            $("#back").hide();
+                                                            location.reload();
+                                                        },
+                                                        error: function () {
+                                                            alert("Something went wrong");
+                                                        }
+                                                    });
+                                                } else {
+                                                }
+                                            });
+
+                                            console.log(valueOfElement);
+                                            // $("#back").on('click', function () {
+                                            //     $("#data-details").empty();
+                                            //     $("#for-data").show();
+                                            //     $("#all-articles").show();
+                                            //     $("#add").show();
+                                            //     $("#back").hide();
+                                            //     $("#edit").hide();
+                                            //     $("#delete").hide();
+                                            // });
+
+                                            $("#edit").on('click', function () {
+                                                $("#data-details").empty();
+                                                $("#edit").hide();
+                                                $("#delete").hide();
+                                                $("#back").hide();
+                                                $("#form-edit").empty();
+                                                $("#form-edit").append("<input type='text' style='width:50%;' id='title' value='" + result.title + "' required><br><br>");
+                                                $("#form-edit").append("<input type='text' style='width:50%;' id='content' style value='" + result.content + "' required><br><br>");
+                                                $("#form-edit").append("<input type='text' style='width:50%;'id='tags' value='" + result.tags + "' required><br><br>");
+                                                $("#form-edit").show();
+                                                $("#back-to-details").show();
+                                                $("#update").show();
+                                                $("#update").unbind().click(function (e) {
+                                                    e.preventDefault();
+                                                    if ($("#title").val().replace(/^\s+|\s+$/g, "").length == 0 || $("#content").val().replace(/^\s+|\s+$/g, "").length == 0) {
+                                                        alert("Title or Content not allowed to be empty");
+                                                    }
+                                                    else {
+                                                        title = $("#title").val();
+                                                        content = $("#content").val();
+                                                        tags = [$("#tags").val()];
+                                                        $.ajax({
+                                                            type: "PUT",
+                                                            url: "http://localhost:8000/articles/" + valueOfElement,
+                                                            data: JSON.stringify({
+                                                                title: title,
+                                                                content: content,
+                                                                tags: tags
+                                                            }),
+                                                            contentType: "application/json",
+                                                            // dataType: "json",
+                                                            success: function (response) {
+                                                                alert("Wiki updated successfully");
+                                                                $("#form-edit").empty();
+                                                                $("#back-to-details").hide();
+                                                                $("#update").hide();
+                                                                $("#for-data").show();
+                                                                $("#add").show();
+                                                            },
+                                                            error: function () {
+                                                                alert("Update failed");
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                                $("#back-to-details").unbind().click(function (e) {
+                                                    e.preventDefault();
+                                                    $("#form-edit").empty();
+                                                    $("#back-to-details").hide();
+                                                    $("#update").hide();
+                                                    $("#data-details").append("<h1>" + result.title + "</h1>");
+                                                    $("#data-details").append("<p>" + result.content + "</p>");
+                                                    $("#back").show();
+                                                    $("#edit").show();
+                                                    $("#delete").show();
+                                                });
+                                                $("#back-to-details").on('click', function () {
+                                                });
+                                            });
+                                        }
+                                    });
+                                });
+                            },
+                        });
+                    });
+                }
+            });
+            $("#add").unbind().click(function (e) {
+                $("#data-details").hide();
+                $("#title-create").val("");
+                $("#content-create").val("");
+                $("#tags-create").val("");
+                console.log("Add button clicked");
+                // $("#all-articles").hide();
+                // $("#add").hide();
+                $("#form-create").show();
+                $("#cancel").show();
+                $("#create").show();
+                $("#edit").hide();
+                $("#delete").hide();
+                $("#cancel").unbind().click(function (e) {
+                    e.preventDefault();
+                    $("#for-data").show();
+                    $("#all-articles").show();
+                    $("#add").show();
+                    $("#cancel").hide();
+                    $("#create").hide();
+                    $("#form-create").hide();
+                });
+                $("#create").unbind().click(function (e) {
+                    e.preventDefault();
+                    if ($("#title-create").val().replace(/^\s+|\s+$/g, "").length == 0 || $("#content-create").val().replace(/^\s+|\s+$/g, "").length == 0) {
+                        alert("Title or Content not allowed to be empty");
+                    }
+                    else {
+                        title = $("#title-create").val();
+                        content = $("#content-create").val();
+                        tags = [$("#tags-create").val()];
+                        $.ajax({
+                            type: "POST",
+                            url: "http://localhost:8000/articles",
+                            data: JSON.stringify({
+                                title: title,
+                                content: content,
+                                tags: tags
+                            }),
+                            dataType: "json",
+                            contentType: "application/json",
+                            success: function (response) {
+                                alert("Wiki created successfully");
+                                location.reload();
+                                $("#add").show();
+                                $("#form-create").hide();
+                                $("#create").hide();
+                                $("#cancel").hide();
+                            },
+                            error: function () {
+                                alert("Failed create wiki");
+                            }
+                        });
+                    }
+                });
+                console.log();
+            });
+        });
+
+    </script>
+</body>
+
+</html>
